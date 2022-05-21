@@ -1,133 +1,130 @@
-import textract
-import PyPDF2
 import pandas as pd
 from tika import parser
-import pdfplumber
+import os
 
-# PANDAS
+def get_pdf_train_dataset():
 
+    columNames = [
+    "EPRTRSectorCode",
+    "eprtrSectorName",
+    "FacilityInspireID",
+    "CITY",
+    "CITY_ID",
+    "targetRealase",
+    "pollutant",
+    "DAY",
+    "MONTH",
+    "YEAR",
+    "COUNTRY",
+    "CONTINENT",
+    "max_wind_speed",
+    "avg_wind_speed",
+    "min_wind_speed",
+    "max_temp",
+    "avg_temp",
+    "min_temp",
+    "DAYS FOG",
+    "FACILITY NAME",
+    "REPORTER NAME"]
 
-# pathfile = "train6/pdfs-1.pdf"
-# text = textract.process(pathfile, method='pdfminer')
+    columNamesv2 = [ "facilityName",
+        "FacilityInspireID",
+        "CountryName",
+        "CONTINENT",
+        "City",
+        "EPRTRSectorCode",
+        "eprtrSectorName",
+        "targetRelease",
+        "pollutant",
+        "DAY",
+        "MONTH",
+        "reportingYear",
+        "max_wind_speed",
+        "min_wind_speed",
+        "avg_wind_speed",
+        "max_temp",
+        "min_temp",
+        "avg_temp",
+        "DAY WITH FOGS",
+        "REPORTER NAME",
+        "CITY ID"]
 
-# pdf_file = open(pathfile, 'rb')
-# pdfReader = PyPDF2.PdfFileReader(pdf_file)
-# pageObj = pdfReader.getPage(0) 
-# print(pageObj.extractText())
-# pageObj.close()
+    data_files = []
 
-raw = parser.from_file("train6/pdfs-1.pdf")
-# print(raw['content'])
-to_process = raw['content'].split('\n')
+    files = os.listdir('train/train6')
+    for file in files:
+        raw = parser.from_file('train/train6/'+file)
+        to_process = raw['content'].split('\n')
+        lines = []
+        for line in to_process:
+            lines.append(line)
+        data_cleaned = [x for x in lines if x != '']
+        data_splited = [x.split(':') for x in data_cleaned]
 
-te = {  'test_index': '', 
-        'countryName': '', 
-        'EPRTRSectorCode': '', 
-        'eprtrSectorName': '', 
-        'EPRTRAnnexIMainActivityCode': '',
-        }
+        # BORRAR ESPACIOS INICIALES
+        for ind, lista in enumerate(data_splited):
+            for ind2, elem in enumerate(lista):
+                data_splited[ind][ind2] = elem.strip()
 
+        # ELIMINAR CORCHETES
+        new_data = []
+        for ind, lista in enumerate(data_splited):
+            for ind2, elem in enumerate(lista):
+                new_data.append(elem)
 
-lines = []
-for line in to_process:
-    lines.append(line)
-    
+        #ARREGLOS ESPECIFICOS
+        cont = "CONTINENT"
+        new_data[8] = new_data[8].replace(cont, "")
+        new_data[8] = new_data[8].strip()
+        new_data.insert(9, cont)
 
+        epr = "eprtrSectorName"
+        new_data[14] = new_data[14].replace(epr, "")
+        new_data[14] = new_data[14].strip()
+        new_data.insert(15, epr)
 
-data_cleaned = [x for x in lines if x != '']
-data_splited = [x.split(':') for x in data_cleaned]
+        splt = new_data[25].split()
+        new_data[25] = splt[0]
+        new_data.insert(26, splt[1])
 
+        splt = new_data[27].split()
+        new_data[27] = splt[0]
+        new_data.insert(28, splt[1])
 
-# for x in data_splited:
-#     print(x)
+        splt = new_data[32].split()
+        new_data[32] = splt[0]
+        new_data.insert(33, splt[1])
 
+        splt = new_data[34].split()
+        new_data[34] = splt[0]
+        new_data.insert(35, splt[1])
 
+        splt = new_data[-7].split()
+        new_data[-7] = splt[0]
+        new_data.insert(-6, splt[1])
 
-# for x in data_splited:
-#     print(x)
-        
-        
-# dic = {}
-# for dat in data_splited:
-#     dic["dat"] = 
+        splt = new_data[-1].split()
+        new_data[-1] = splt[0]
+        new_data.append(splt[1])
 
+        splt = new_data[20].split()
+        new_data[20] = splt[0]
+        new_data.insert(21, splt[1])
 
-    
-# pd_dict = pd.DataFrame(te)
-# print(pd_dict)
-    
-
-with pdfplumber.open("train6/pdfs-1.pdf") as pdf: 
-    text = pdf.pages[0]
-    keys = text.filter(lambda obj: not (obj["object_type"] == "char" and "Bold" not in obj["fontname"]))
-    values = text.filter(lambda obj: not (obj["object_type"] == "char" and "Bold" in obj["fontname"]))
-    key_ext = keys.extract_text()
-    val_ext = values.extract_text()
-    
-    dicto = {}
-    
-    
-    keys_splitted = key_ext.split("\n")
-    values_splitted = val_ext.split("\n")
-    
-    
-    names = []
-    result = []
-    
-     
-    for n in keys_splitted:
-        splitted = n.split(":")
-        clean = list(filter(None, splitted))
-        
-        for c in clean:
-            j = c.replace(' ', '')
-            names.append(j)
-        
-
-    for i in range(0, len(values_splitted)):
-        print(values_splitted[i])
-
-            
-        
-        
-        
-        
-    # for x in names:
-    #     print(x)
-    # print(len(names))
-    # print(len(values_splitted))
-    
-    # for i in range(len(names)):
-    #     dicto[names[i]] = values_splitted[i]
-        
-    
-    # print(dicto)
-        
-    # print(names)        
-        # for val in splitted:
-        #     val = val.strip("\n")
-        #     for k in val.split(":"):
-        #         panda[k] = val
-              
-              
-                
-    # for p in panda:
-    #     print(p)
-        
-        
-    
-   
-   
-   
-    
-    
+        splt = new_data[-10].split()
+        new_data[-10] = splt[0]
+        new_data.insert(-9, splt[1])
 
 
 
+        data_np = []
+        for ind, elem in enumerate(new_data):
+            for name in columNames:
+                if name == elem:
+                    # print("yes")
+                    data_np.append(new_data[ind + 1])
 
-
-
-
-
-
-
+        data_files.append(data_np)
+        dataF = pd.DataFrame(data_files)
+        dataF.columns = columNamesv2
+    return dataF

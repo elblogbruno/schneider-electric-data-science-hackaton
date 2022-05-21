@@ -1,25 +1,42 @@
+from collections import Counter
 import numpy as np
 import seaborn as sns 
 import matplotlib.pyplot as plt
 import pandas as pd
 
 class PrepareDataset:
-    def __init__(self, dataset, name='dataset'):
+    def __init__(self, dataset, name='dataset', target_variable_name='pollutant'):
         self.dataset = dataset
         self.name = name
+        self.target_variable_name = target_variable_name
 
     def preprocess_dataset(self):
         self.dataset = self._preprocess_dataset()
         return self.dataset
 
-    def _get_dataset_balance(self, dataset):
+    def balance_dataset(self, X_train, y_train, X_test, y_test):
+        """ Balance dataset classes"""
+        # get the number of each class
+        from imblearn.over_sampling import RandomOverSampler
+
+        over_sampler = RandomOverSampler(random_state=42)
+        X_res, y_res = over_sampler.fit_resample(X_train, y_train)
+        # X_test, y_test = over_sampler.fit_resample(X_test, y_test)
+
+        print(f"Training target statistics: {Counter(y_res)}")
+        print(f"Testing target statistics: {Counter(y_test)}")
+
+        return X_res, y_res
+
+    def get_dataset_balance(self, dataset):
         """
         Returns the balance of the dataset
         """
-        if 'pollutant' not in dataset.columns:
+        if self.target_variable_name not in dataset.columns:
             print('test data received')
             return None
-        return dataset.groupby('pollutant').size()
+
+        return dataset.groupby(self.target_variable_name).size()
 
     def _get_nan_columns(self, dataset):
         """
@@ -55,7 +72,8 @@ class PrepareDataset:
         """
         Fix the columns type to numeric
         """
-        numeric_columns = ['max_temp', 'max_wind_speed', 'min_temp', 'min_wind_speed', 'reportingYear', 'avg_temp', 'avg_wind_speed', 'MONTH', 'DAY', 'DAY WITH FOGS']
+        # numeric_columns = ['max_temp', 'max_wind_speed', 'min_temp', 'min_wind_speed', 'reportingYear', 'avg_temp', 'avg_wind_speed', 'MONTH', 'DAY', 'DAY WITH FOGS']
+        numeric_columns = ['reportingYear',  'DAY WITH FOGS']
 
         for column in numeric_columns:
             self.dataset[column] = pd.to_numeric(self.dataset[column], errors='coerce')
@@ -68,6 +86,7 @@ class PrepareDataset:
         Returns the columns that values are not numbers 
         """
         col = self.dataset.select_dtypes(include='object').columns
+
         return col
 
     def _get_category_count(self, column):
@@ -80,40 +99,55 @@ class PrepareDataset:
         """
         Returns the categories of the column
         """
-        return self.dataset[column].unique()
+        col = self.dataset[column].unique()
+
+        if column == self.target_variable_name:
+            # change the categories of the pollutant column order
+            col = ['Nitrogen oxides (NOX)', 'Carbon dioxide (CO2)', 'Methane (CH4)']
+        
+        return col
 
     def categorize_data(self, columns_to_categorize):
         """
         Categorize the data in the columns specified
         """
+
+        from sklearn.preprocessing import LabelEncoder
+        encoder = LabelEncoder()
+
         for column in columns_to_categorize:
-            print('Column: {0} Size: {1}'.format(column, self._get_category_count(column)))
-            column_categories = self._get_columns_category(column)
-            print(len(column_categories))
-
-            # for each category assign a number to it and replace the category with the number
-            for i, category in enumerate(column_categories):
-                self.dataset[column] = self.dataset[column].replace(category, i)
-                
-
+            self.dataset[column] = encoder.fit_transform(self.dataset[column])
+            
         return self.dataset
 
     def get_highest_correlation(self, n=10):
         """
         Returns the n highest correlation variables
         """
-        return self.dataset.corr().nlargest(n, 'pollutant')
+        
+
+        return self.dataset.corr().nlargest(n, self.target_variable_name)
 
     def show_dataset_correlation_heatmap(self, ):
         """
         Returns the correlation between the variables
         """
         try:
-            # set columns type to numeric to calculate the correlation
-            coor = self.dataset.select_dtypes(include=['number']).corr()
-            
-            # remove null values
-            coor = coor.dropna(how='all')
+            dataset = pd.DataFrame()
+
+            if self.target_variable_name in self.dataset.columns:
+                # move the pollutant column to the last position
+                s = self.dataset[self.target_variable_name]
+                x = self.dataset.drop(self.target_variable_name, axis=1)
+
+                dataset = pd.concat([x, s], axis=1)
+
+                
+            # # set columns type to numeric to calculate the correlation
+            #coor = self.dataset.select_dtypes(include=['number']).corr()
+            coor = dataset.corr()
+            # # remove null values
+            # coor = coor.dropna(how='all')
 
             # show the heatmap of the correlation
             sns.heatmap(coor, annot=True)
@@ -125,7 +159,7 @@ class PrepareDataset:
         
     def _preprocess_dataset(self):
         print("Checking datase Balance")
-        print(self._get_dataset_balance(self.dataset))
+        print(self.get_dataset_balance(self.dataset))
         
         print("Checking dataset Nan Columns")
         has_nan_columns = self._get_nan_columns(self.dataset)
@@ -135,9 +169,5 @@ class PrepareDataset:
             self.dataset = self._fix_nan_columns(self.dataset)
 
         self.fix_columns_type()
-
-        # # get columns that are strings and categorical
-        # categorical_columns = self.get_categorical_columns()
-        # self.categorize_data(categorical_columns)     
 
         return self.dataset

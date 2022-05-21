@@ -1,13 +1,14 @@
 from data_preprocessing import PrepareDataset
 
 from extract.json_extract import get_json_train_dataset
-from extract.csv_extract import get_csv_train_dataset, get_csv_test_dataset
+from extract.csv_extract import get_csv_train_dataset
+from extract.pdf_extract import get_pdf_train_dataset
 
 import pandas as pd
 import os
 
 class Dataset(object):
-    def __init__(self, type='csv', file_name='', sep=None, headers=None, child_datasets = []):
+    def __init__(self, type='csv', file_name='', target_variable_name='pollutant', sep=None, headers=None, child_datasets = []):
 
         if len(child_datasets) > 0:
             print("Concatenating datasets...")
@@ -22,7 +23,7 @@ class Dataset(object):
 
             self.dataset = self.get_dataset(type)
         
-        self.pre_process = PrepareDataset(self.dataset)
+        self.pre_process = PrepareDataset(self.dataset, name=target_variable_name, target_variable_name=target_variable_name)
 
 
     def concat_datasets(self):
@@ -41,7 +42,7 @@ class Dataset(object):
         elif type == 'json':
             return get_json_train_dataset(self.file_name)
         elif type == 'pdf':
-            return get_csv_test_dataset(self.file_name, self.sep)
+            return get_pdf_train_dataset()
         else:
             raise Exception('Invalid type')
 
