@@ -136,11 +136,11 @@ def save_final_result(test_dataset, model):
     pred_y = model.predict(test_dataset.dataset)
 
     # Empty dataset with two columns (target variable and predicted value)
-    final_dataset = pd.DataFrame(columns=['test_index', 'predictedRelease'])  
+    final_dataset = pd.DataFrame(columns=['test_index', 'pollutant'])  
     final_dataset['test_index'] = range(len(test_dataset.dataset))
     final_dataset['pollutant'] = pred_y
 
-    final_dataset.to_csv('predictions.csv', index=True)
+    final_dataset.to_csv('predictions.csv', index = False, columns=['test_index', 'pollutant']) 
     final_dataset.to_json('predictions.json')
 
 
