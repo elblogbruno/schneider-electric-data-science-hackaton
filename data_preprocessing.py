@@ -10,8 +10,8 @@ class PrepareDataset:
         self.name = name
         self.target_variable_name = target_variable_name
 
-    def preprocess_dataset(self):
-        self.dataset = self._preprocess_dataset()
+    def preprocess_dataset(self, numerical_headers):
+        self.dataset = self._preprocess_dataset(numerical_headers)
         return self.dataset
 
     def balance_dataset(self, X_train, y_train, X_test, y_test):
@@ -68,18 +68,17 @@ class PrepareDataset:
 
         return dataset
 
-    def fix_columns_type(self):
+    def fix_columns_type(self, numerical_headers):
         """
         Fix the columns type to numeric
         """
         # numeric_columns = ['max_temp', 'max_wind_speed', 'min_temp', 'min_wind_speed', 'reportingYear', 'avg_temp', 'avg_wind_speed', 'MONTH', 'DAY', 'DAY WITH FOGS']
-        numeric_columns = ['reportingYear',  'DAY WITH FOGS']
+        # numeric_columns = ['reportingYear',  'DAY WITH FOGS']
 
-        for column in numeric_columns:
+        for column in numerical_headers:
             self.dataset[column] = pd.to_numeric(self.dataset[column], errors='coerce')
 
         return self.dataset
-
 
     def get_categorical_columns(self):
         """
@@ -157,7 +156,7 @@ class PrepareDataset:
             print(e)
             pass
         
-    def _preprocess_dataset(self):
+    def _preprocess_dataset(self, numerical_headers):
         print("Checking datase Balance")
         print(self.get_dataset_balance(self.dataset))
         
@@ -168,6 +167,6 @@ class PrepareDataset:
             print("Fixing dataset Nan Columns...")
             self.dataset = self._fix_nan_columns(self.dataset)
 
-        self.fix_columns_type()
+        self.fix_columns_type(numerical_headers)
 
         return self.dataset

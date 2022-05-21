@@ -20,7 +20,6 @@ class StoreModels():
         comparison = self.compare_models(self.get_filename(), self.get_models())
         print(comparison)        
 
-
     def compare_models(filename, model):
         equal = False
         with open(filename, 'rb') as f:

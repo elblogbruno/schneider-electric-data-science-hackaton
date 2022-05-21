@@ -47,7 +47,10 @@ class Dataset(object):
             raise Exception('Invalid type')
 
     def remove_headers(self, headers):
-        self.dataset.drop(headers, axis=1, inplace=True)
+        if len(headers) > 0:
+            print("Removing headers... {0}".format(headers))
+            self.dataset.drop(headers, axis=1, inplace=True)
+            print("Done")
 
     def remove_all_headers(self):
         # remove headers from dataset
@@ -59,9 +62,9 @@ class Dataset(object):
     def get_data(self):
         return self.dataset
 
-    def process_data(self):
+    def process_data(self, numerical_headers):
         print("Preprocessing dataset... {0}".format(self.file_name))
-        self.dataset = self.pre_process.preprocess_dataset()
+        self.dataset = self.pre_process.preprocess_dataset(numerical_headers)
         print("Done")
         return self
 

@@ -53,7 +53,11 @@ from store_models import StoreModels
 
 def load_and_process_data(target_variable_name, force = False):
     # headers_to_remove = ["REPORTER NAME",  "FacilityInspireID", 'facilityName', 'targetRelease', 'MONTH', 'DAY', 'CONTINENT', 'max_wind_speed', 'min_wind_speed', 'avg_wind_speed', 'max_temp', 'min_temp', 'City']
-    headers_to_remove = ['targetRelease', 'MONTH', 'DAY', 'CONTINENT', 'max_wind_speed', 'min_wind_speed', 'avg_wind_speed', 'max_temp', 'min_temp', 'avg_temp']
+    # headers_to_remove = ['targetRelease', 'CONTINENT', 'DAY', 'MONTH', 'max_wind_speed', 'min_wind_speed', 'avg_wind_speed', 'max_temp', 'min_temp', 'avg_temp']
+    # numerical_headers = ['DAY WITH FOGS', 'reportingYear']
+    headers_to_remove = ['CONTINENT', 'CITY ID', 'DAY', 'REPORTER NAME', 'targetRelease',  'MONTH', 'reportingYear','max_temp',  'avg_temp', 'max_wind_speed', 'min_wind_speed', 'avg_wind_speed']
+    numerical_headers = ['DAY WITH FOGS', 'min_temp']
+
 
     if os.path.exists('result/train_processed.csv') == False or force:
         print("Loading dataset...")
@@ -70,9 +74,9 @@ def load_and_process_data(target_variable_name, force = False):
         dataset_json_2 = Dataset(type='json', file_name='second', target_variable_name=target_variable_name)
         dataset_json_3 = Dataset(type='json', file_name='third', target_variable_name=target_variable_name)
 
-        dataset_pdf = Dataset(type='pdf', target_variable_name=target_variable_name)
+        dataset_pdf = Dataset(type='pdf', file_name='pdf', target_variable_name=target_variable_name)
         dataset_pdf.remove_headers(headers_to_remove)
-        dataset_pdf.process_data()
+        dataset_pdf.process_data(numerical_headers)
 
 
         # delete headers that are not in dataset_json_1 and dataset_json_2
@@ -87,12 +91,12 @@ def load_and_process_data(target_variable_name, force = False):
         dataset_json_2.remove_headers(diff_headers)
         dataset_json_3.remove_headers(diff_headers)
         
-        dataset_csv_1.process_data()
-        dataset_csv_2.process_data()
+        dataset_csv_1.process_data(numerical_headers)
+        dataset_csv_2.process_data(numerical_headers)
 
-        dataset_json_1.process_data()
-        dataset_json_2.process_data()
-        dataset_json_3.process_data()
+        dataset_json_1.process_data(numerical_headers)
+        dataset_json_2.process_data(numerical_headers)
+        dataset_json_3.process_data(numerical_headers)
 
         train_dataset = Dataset(child_datasets=[dataset_csv_1, dataset_csv_2, dataset_json_1, dataset_json_2, dataset_json_3, dataset_pdf], target_variable_name=target_variable_name)
         
@@ -111,11 +115,11 @@ def load_and_process_data(target_variable_name, force = False):
     if os.path.exists('result/test_processed.csv') == False or force:
         test_dataset = Dataset(type='csv', file_name='test/test_x.csv', target_variable_name=target_variable_name)
         
-        test_dataset.remove_headers(['EPRTRAnnexIMainActivityCode', 'EPRTRSectorCode', 'test_index'])
+        test_dataset.remove_headers(['EPRTRAnnexIMainActivityCode', 'test_index'])
         
         test_dataset.remove_headers(headers_to_remove)
         
-        test_dataset.process_data()
+        test_dataset.process_data(numerical_headers)
 
         categorical_columns = test_dataset.pre_process.get_categorical_columns()
         test_dataset.pre_process.categorize_data(categorical_columns)      # categorical_columns = ['pollutant']
@@ -126,6 +130,18 @@ def load_and_process_data(target_variable_name, force = False):
 
     return train_dataset, test_dataset
     
+
+def save_final_result(test_dataset, model):
+    print("Saving final result...")
+    pred_y = model.predict(test_dataset.dataset)
+
+    # Empty dataset with two columns (target variable and predicted value)
+    final_dataset = pd.DataFrame(columns=['test_index', 'predictedRelease'])  
+    final_dataset['test_index'] = range(len(test_dataset.dataset))
+    final_dataset['pollutant'] = pred_y
+
+    final_dataset.to_csv('predictions.csv', index=True)
+    final_dataset.to_json('predictions.json')
 
 
 
@@ -141,11 +157,12 @@ if __name__ == '__main__':
 
     highest_corrl = train_dataset.pre_process.get_highest_correlation()
 
+    model_manager = ModelManager(train_dataset, test_dataset, target_variable_name)
+    model = model_manager.get_best_model()
+    save_final_result(test_dataset, model)
 
-    model = ModelManager(train_dataset, test_dataset, target_variable_name)
-    model.train_different_models()
+    model_manager.find_best_parameter(model)
 
-    ##### TESTING ZONE #####
     
     # SAVE DATASET
     # file = "models.csv"

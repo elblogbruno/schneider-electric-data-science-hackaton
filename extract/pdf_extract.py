@@ -1,6 +1,11 @@
 import pandas as pd
 from tika import parser
 import os
+from math import log10, floor
+
+def find_exp(number) -> int:
+    base10 = log10(abs(number))
+    return abs(floor(base10))
 
 def get_pdf_train_dataset():
 
@@ -29,7 +34,7 @@ def get_pdf_train_dataset():
 
     columNamesv2 = [ "facilityName",
         "FacilityInspireID",
-        "CountryName",
+        "countryName",
         "CONTINENT",
         "City",
         "EPRTRSectorCode",
@@ -127,4 +132,29 @@ def get_pdf_train_dataset():
         data_files.append(data_np)
         dataF = pd.DataFrame(data_files)
         dataF.columns = columNamesv2
+
+        columns_to_fix  = ['max_temp', 'min_temp', 'avg_temp', 'max_wind_speed', 'min_wind_speed', 'avg_wind_speed']
+
+        for col in columns_to_fix:
+            val = dataF[col].to_string(index=False)
+
+            # get val type 
+            # print(type(val))    
+
+            if ',' in val:
+                val = val.replace(',', '.')
+
+            if '\n' in val:
+                val = val.split('\n')[0]
+            
+            val = float(val)
+            # print(val)
+
+            exp = find_exp(val)
+
+            if exp > 0:
+                val = val / 10 ** exp
+                # print(val)
+                dataF[col] = val
+
     return dataF
