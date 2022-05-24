@@ -20,7 +20,7 @@ By Using agressive data cleaning and parsing, with categorization of variables o
 
 `{'f1_score': 0.7252596753363753, 'precision': 0.7229358290279416, 'recall': 0.7277690113858096, 'accuracy': 0.7025566884796834}`
 
-This are the results of our Cross Validation of the Model:
+This are the results of our Cross Validation of the Model (F1 Macro Score):
 
 `Cross-validation scores: [0.74248753 0.74695766 0.74315829 0.74644212 0.80487625]
 Average cross-validation score: 0.7567843695113846`
