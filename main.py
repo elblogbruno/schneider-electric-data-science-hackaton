@@ -148,7 +148,7 @@ def save_final_result(test_dataset, model):
 if __name__ == '__main__':
     target_variable_name = 'pollutant'
 
-    train_dataset, test_dataset = load_and_process_data(target_variable_name, force= True)
+    train_dataset, test_dataset = load_and_process_data(target_variable_name, force= False)
 
     print(len(train_dataset.dataset))
     print(len(test_dataset.dataset))
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     model = model_manager.get_best_model()
     save_final_result(test_dataset, model)
 
-    model_manager.find_best_parameter(model)
+    # model_manager.find_best_parameter(model)
 
     
     # SAVE DATASET

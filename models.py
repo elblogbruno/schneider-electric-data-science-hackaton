@@ -80,8 +80,8 @@ class ModelManager:
 
         from sklearn.model_selection import cross_val_score
 
-        # models = [RandomForestClassifier(n_estimators=200, random_state=0)]
-        models = [RandomForestClassifier(n_estimators=200, random_state=0), KNeighborsClassifier(), GaussianNB(), LogisticRegression(penalty='l2', C=1.0)]
+        models = [RandomForestClassifier(n_estimators=200, random_state=0)]
+        # models = [RandomForestClassifier(n_estimators=200, random_state=0), KNeighborsClassifier(), GaussianNB(), LogisticRegression(penalty='l2', C=1.0)]
 
         best_accuracy = 0
         best_model = None
