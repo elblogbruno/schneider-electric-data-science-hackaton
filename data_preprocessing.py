@@ -115,7 +115,21 @@ class PrepareDataset:
         encoder = LabelEncoder()
 
         for column in columns_to_categorize:
-            self.dataset[column] = encoder.fit_transform(self.dataset[column])
+            if column == self.target_variable_name:
+                encoder = LabelEncoder()
+                # set 'Nitrogen oxides (NOX)' to 0 
+                # and 'Carbon dioxide (CO2)' to 1
+                # and 'Methane (CH4)' to 2
+
+                # encoder.fit(['Nitrogen oxides (NOX)', 'Carbon dioxide (CO2)', 'Methane (CH4)'])
+                # self.dataset[column] = encoder.transform(self.dataset[column])
+
+                self.dataset[column] = self.dataset[column].apply(lambda x: ['Nitrogen oxides (NOX)', 'Carbon dioxide (CO2)', 'Methane (CH4)'].index(x))
+
+                # self.dataset[column] = encoder.fit_transform(self.dataset[column], )
+            else:
+                self.dataset[column] = encoder.fit_transform(self.dataset[column])
+
             
         return self.dataset
 
