@@ -31,6 +31,10 @@ These are our ROC Curves and PR Curves:
 
 ![image](https://user-images.githubusercontent.com/10481058/169686900-b85c53d5-0844-42dd-9cca-be3a02517146.png)
 
+## Nuwe Report
+
+![image](https://user-images.githubusercontent.com/10481058/176244071-b081a300-af63-4b77-adf0-9ca6e011bd04.png)
+
 
 ## How to execute the demonstration?
 
