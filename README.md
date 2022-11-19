@@ -1,6 +1,6 @@
-# Schneider-electric-data-science-hackaton Nov 2022
+# Schneider-electric-data-science-hackaton 2022
 
-Code for the Nov 2022 Schneider Electric Data Science Hackaton
+Code for the 2022 Schneider Electric Data Science Hackaton
 
 
 ## Background
